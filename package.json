@@ -1,0 +1,20 @@
+{
+  "name": "stock-bancho",
+  "version": "1.0.0",
+  "description": "単身赴任の食材在庫管理アプリ「ストック番長」",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@vercel/kv": "^3.0.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.18.0",
+    "node-cron": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

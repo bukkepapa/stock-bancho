@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ストック番長">
+  <meta name="theme-color" content="#2563EB">
+  <title>ストック番長</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Toast通知 -->
+  <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+  <div class="app-wrapper">
+
+    <!-- ===== 画面①：ホーム ===== -->
+    <div id="screen-home" class="screen active">
+      <header class="header">
+        <div class="header-top">
+          <h1 class="app-title">🏪 ストック番長</h1>
+          <span id="shopping-day-badge" class="badge"></span>
+        </div>
+      </header>
+      <main class="screen-content">
+        <!-- 🔴アラートバナー -->
+        <div id="alert-banner" class="alert-banner hidden" role="alert"></div>
+        <!-- 在庫カード一覧 -->
+        <div id="cards-container" class="cards-container"></div>
+        <!-- 最終更新 -->
+        <p id="last-updated" class="last-updated"></p>
+        <!-- 更新ボタン -->
+        <button class="btn btn-primary btn-large" onclick="showScreen('update')">
+          📝 在庫を更新する
+        </button>
+      </main>
+    </div>
+
+    <!-- ===== 画面②：在庫更新 ===== -->
+    <div id="screen-update" class="screen">
+      <header class="header">
+        <button class="btn-back" onclick="showScreen('home')" aria-label="戻る">
+          &#8592; ホームに戻る
+        </button>
+        <h1 class="header-title">在庫を更新</h1>
+      </header>
+      <main class="screen-content">
+        <div id="update-items-container"></div>
+        <div id="update-memo-container"></div>
+        <button class="btn btn-primary btn-large" onclick="handleSave()">
+          💾 保存する
+        </button>
+      </main>
+    </div>
+
+    <!-- ===== 画面③：購入履歴 ===== -->
+    <div id="screen-history" class="screen">
+      <header class="header">
+        <h1 class="header-title">📋 購入履歴</h1>
+      </header>
+      <main class="screen-content">
+        <div id="weekly-summary-container"></div>
+        <div id="history-list-container"></div>
+      </main>
+    </div>
+
+    <!-- ===== 画面④：設定 ===== -->
+    <div id="screen-settings" class="screen">
+      <header class="header">
+        <h1 class="header-title">⚙️ 設定</h1>
+      </header>
+      <main class="screen-content" id="settings-content"></main>
+    </div>
+
+  </div><!-- /app-wrapper -->
+
+  <!-- ===== 画面⑤：買い物サジェスト（モーダル） ===== -->
+  <div id="modal-suggestion" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="suggestion-title">
+    <div class="modal-backdrop" onclick="closeSuggestion()"></div>
+    <div class="modal-content">
+      <h2 id="suggestion-title" class="modal-title">🛒 今日の買い物リスト</h2>
+      <p id="suggestion-subtitle" class="modal-subtitle"></p>
+      <div id="suggestion-items-container" class="suggestion-items"></div>
+      <div class="modal-buttons">
+        <button class="btn btn-line" onclick="sendSuggestionToLINE()">
+          <span class="line-icon">LINE</span> LINEに送る
+        </button>
+        <button class="btn btn-secondary" onclick="closeSuggestion()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ボトムナビ ===== -->
+  <nav class="bottom-nav" role="navigation" aria-label="メインナビゲーション">
+    <button class="nav-btn active" data-screen="home" onclick="showScreen('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">ホーム</span>
+    </button>
+    <button class="nav-btn" data-screen="update" onclick="showScreen('update')">
+      <span class="nav-icon">📝</span>
+      <span class="nav-label">更新</span>
+    </button>
+    <button class="nav-btn" data-screen="history" onclick="showScreen('history')">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">履歴</span>
+    </button>
+    <button class="nav-btn" data-screen="settings" onclick="showScreen('settings')">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">設定</span>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
