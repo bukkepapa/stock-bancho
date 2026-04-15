@@ -545,6 +545,13 @@ function sendSuggestionToLINE() {
 
   lines.push('', '忘れずに！');
 
+  // メモがあれば末尾に追記
+  const today    = new Date().toISOString().split('T')[0];
+  const todayLog = state.purchaseLogs.find(l => l.date === today);
+  if (todayLog && todayLog.memo) {
+    lines.push('', `📝 メモ：${todayLog.memo}`);
+  }
+
   const text = lines.join('\n');
   const url  = `https://line.me/R/share?text=${encodeURIComponent(text)}`;
   window.open(url, '_blank');
