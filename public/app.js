@@ -43,20 +43,51 @@ const DEFAULT_INVENTORY = {
 const STORAGE_KEY  = 'stockBancho_v1';
 const USER_ID_KEY  = 'stockBancho_userId';
 
-// ── ユーザーID管理 ────────────────────────────────────────
-// URLパラメータ ?u=xxx があればそれを使い localStorage に保存。
-// なければ localStorage の値を使う。どちらもなければ 'anonymous'。
-function getUserId() {
-  const params = new URLSearchParams(window.location.search);
-  const fromUrl = params.get('u');
-  if (fromUrl) {
-    localStorage.setItem(USER_ID_KEY, fromUrl);
-    return fromUrl;
-  }
-  return localStorage.getItem(USER_ID_KEY) || 'anonymous';
-}
+// ── LIFF設定 ─────────────────────────────────────────────
+// LINE Developers Console で取得した LIFF ID をここに入力する
+const LIFF_ID = '2009810063-Ax2c9O0p';
 
-const USER_ID = getUserId();
+// USER_ID は initAuth() 完了後に確定する
+let USER_ID = 'anonymous';
+
+// ── LIFF認証 ─────────────────────────────────────────────
+/**
+ * LIFF を初期化し LINE ユーザーID を取得する。
+ * - ?u=xxx パラメータがある場合は開発用として優先使用（本番では使わない）
+ * - LIFF 未設定または初期化失敗時は localStorage のキャッシュを使う
+ */
+async function initAuth() {
+  // 開発用フォールバック: ?u=xxx があればそのまま使う
+  const devId = new URLSearchParams(window.location.search).get('u');
+  if (devId) {
+    USER_ID = devId;
+    localStorage.setItem(USER_ID_KEY, USER_ID);
+    return;
+  }
+
+  // LIFF ID 未設定なら localStorage キャッシュを使う
+  if (!LIFF_ID || LIFF_ID === 'REPLACE_WITH_YOUR_LIFF_ID') {
+    USER_ID = localStorage.getItem(USER_ID_KEY) || 'anonymous';
+    return;
+  }
+
+  try {
+    await liff.init({ liffId: LIFF_ID });
+
+    if (!liff.isLoggedIn()) {
+      // LINE 未ログイン → LINE ログイン画面へリダイレクト
+      liff.login({ redirectUri: window.location.href });
+      return; // リダイレクト後にページが再ロードされる
+    }
+
+    const profile = await liff.getProfile();
+    USER_ID = profile.userId;  // 例: "U4e0dec6fa36daf0f4..."
+    localStorage.setItem(USER_ID_KEY, USER_ID);
+  } catch (e) {
+    console.warn('LIFF init failed, using cached userId:', e);
+    USER_ID = localStorage.getItem(USER_ID_KEY) || 'anonymous';
+  }
+}
 
 // ── アプリ状態 ────────────────────────────────────────────
 let state = {
@@ -858,7 +889,10 @@ function escapeHtml(str) {
 }
 
 // ── 初期化 ────────────────────────────────────────────────
-function init() {
+async function init() {
+  // LIFF認証を先に完了させてから USER_ID を確定する
+  await initAuth();
+
   loadState();
 
   // Service Worker 登録（PWA）
