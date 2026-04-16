@@ -1,6 +1,6 @@
 /**
- * Vercel Serverless Function: GET /api/data
- * Supabase から在庫データを取得する（デバイス間同期用）
+ * Vercel Serverless Function: GET /api/data?u=<user_id>
+ * Supabase の stock_bancho_users から在庫データを取得する
  */
 
 const axios = require('axios');
@@ -13,9 +13,11 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  const userId = req.query.u || 'anonymous';
+
   try {
     const response = await axios.get(
-      `${SUPABASE_URL}/rest/v1/stock_bancho_data?id=eq.1&select=data`,
+      `${SUPABASE_URL}/rest/v1/stock_bancho_users?user_id=eq.${encodeURIComponent(userId)}&select=data`,
       {
         headers: {
           'apikey':        SUPABASE_KEY,

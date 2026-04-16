@@ -40,7 +40,23 @@ const DEFAULT_INVENTORY = {
 };
 
 // ── ストレージキー ────────────────────────────────────────
-const STORAGE_KEY = 'stockBancho_v1';
+const STORAGE_KEY  = 'stockBancho_v1';
+const USER_ID_KEY  = 'stockBancho_userId';
+
+// ── ユーザーID管理 ────────────────────────────────────────
+// URLパラメータ ?u=xxx があればそれを使い localStorage に保存。
+// なければ localStorage の値を使う。どちらもなければ 'anonymous'。
+function getUserId() {
+  const params = new URLSearchParams(window.location.search);
+  const fromUrl = params.get('u');
+  if (fromUrl) {
+    localStorage.setItem(USER_ID_KEY, fromUrl);
+    return fromUrl;
+  }
+  return localStorage.getItem(USER_ID_KEY) || 'anonymous';
+}
+
+const USER_ID = getUserId();
 
 // ── アプリ状態 ────────────────────────────────────────────
 let state = {
@@ -787,6 +803,7 @@ function syncToServer() {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({
+      user_id:      USER_ID,
       settings:     state.settings,
       inventory:    state.inventory,
       purchaseLogs: state.purchaseLogs
@@ -802,7 +819,7 @@ function syncToServer() {
  */
 async function syncFromServer() {
   try {
-    const res = await fetch('/api/data');
+    const res = await fetch(`/api/data?u=${encodeURIComponent(USER_ID)}`);
     if (!res.ok) return;  // サーバーにデータなし → ローカルのまま
 
     const serverData = await res.json();

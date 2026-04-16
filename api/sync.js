@@ -1,6 +1,7 @@
 /**
  * Vercel Serverless Function: POST /api/sync
  * フロントエンドから在庫データを受け取り Supabase に保存する
+ * body: { user_id, settings, inventory, purchaseLogs }
  */
 
 const axios = require('axios');
@@ -14,21 +15,24 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const data = req.body;
-    if (!data || !data.inventory || !data.settings) {
+    const { user_id, ...rest } = req.body;
+    if (!rest || !rest.inventory || !rest.settings) {
       return res.status(400).json({ error: 'invalid payload' });
     }
 
-    // UPSERT（id=1 の行を常に上書き）
+    const userId = user_id || 'anonymous';
+    const data   = { inventory: rest.inventory, settings: rest.settings, purchaseLogs: rest.purchaseLogs };
+
+    // UPSERT（user_id をキーに上書き）
     await axios.post(
-      `${SUPABASE_URL}/rest/v1/stock_bancho_data`,
-      { id: 1, data, updated_at: new Date().toISOString() },
+      `${SUPABASE_URL}/rest/v1/stock_bancho_users`,
+      { user_id: userId, data, updated_at: new Date().toISOString() },
       {
         headers: {
-          'apikey':       SUPABASE_KEY,
+          'apikey':        SUPABASE_KEY,
           'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer':       'resolution=merge-duplicates'
+          'Content-Type':  'application/json',
+          'Prefer':        'resolution=merge-duplicates'
         }
       }
     );
