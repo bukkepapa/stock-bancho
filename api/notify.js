@@ -116,9 +116,14 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Supabase からデータ取得
+    // Supabase からデータ取得（stock_bancho_users テーブルを使用）
+    const userId = process.env.LINE_USER_ID;
+    if (!userId) {
+      return res.status(500).json({ error: 'LINE_USER_ID が未設定です' });
+    }
+
     const sbRes = await axios.get(
-      `${SUPABASE_URL}/rest/v1/stock_bancho_data?id=eq.1&select=data`,
+      `${SUPABASE_URL}/rest/v1/stock_bancho_users?user_id=eq.${encodeURIComponent(userId)}&select=data`,
       {
         headers: {
           'apikey':        SUPABASE_KEY,
@@ -137,11 +142,6 @@ module.exports = async (req, res) => {
     const data = rows[0].data;
     const text = buildNotifyText(data);
     console.log('[notify] 通知テキスト:\n' + text);
-
-    const userId = process.env.LINE_USER_ID;
-    if (!userId) {
-      return res.status(500).json({ error: 'LINE_USER_ID が未設定です', text });
-    }
 
     const token = await getAccessToken();
 

@@ -867,9 +867,27 @@ async function syncFromServer() {
 
     // サーバーの方が新しければ上書き
     if (serverLatest > localLatest) {
-      state.settings     = serverData.settings;
-      state.inventory    = serverData.inventory;
-      state.purchaseLogs = serverData.purchaseLogs || [];
+      state.settings  = serverData.settings;
+      state.inventory = serverData.inventory;
+
+      // purchaseLogs はサーバーとローカルをマージする。
+      // 同じ日付のログは「購入品目がある方」を優先し、
+      // サーバー側が古いデータで purchased:{} だった場合でもローカルの記録を失わない。
+      const serverLogs = serverData.purchaseLogs || [];
+      const localLogs  = state.purchaseLogs;
+      const byDate = new Map();
+      [...serverLogs, ...localLogs].forEach(log => {
+        const prev = byDate.get(log.date);
+        if (!prev) { byDate.set(log.date, log); return; }
+        // 購入品目データがある方を優先
+        const prevHas = Object.values(prev.purchased  || {}).some(p => p.count > 0);
+        const curHas  = Object.values(log.purchased || {}).some(p => p.count > 0);
+        if (!prevHas && curHas) byDate.set(log.date, log);
+      });
+      state.purchaseLogs = [...byDate.values()]
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, 30);
+
       saveState();  // ローカルにも保存（オフライン対応）
       renderHome(); // 画面を更新
     }
