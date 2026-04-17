@@ -79,7 +79,7 @@ function getStockStatus(stockDays, daysUntil) {
 
 function buildNotifyText(data) {
   const { settings, inventory } = data;
-  const appUrl = process.env.APP_URL || 'https://stock-bancho.vercel.app';
+  const appUrl = process.env.APP_URL || 'https://liff.line.me/2009810063-Ax2c9O0p';
   const { daysUntil, dayName } = getNextShoppingInfo(settings.shoppingDays);
   const todayIsShopping = isShoppingDay(settings.shoppingDays);
 
